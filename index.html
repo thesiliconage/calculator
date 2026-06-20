@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-          content="default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'">
+          content="default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://open.er-api.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'">
     <title>Calculator</title>
     <style>
         @font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url(fonts/inter-200.woff2) format('woff2')}
@@ -512,7 +512,7 @@
 
     var keyMap = { '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','.':'.' };
     var opMap = { '+':'add','-':'subtract','*':'multiply','/':'divide' };
-    document.addEventListener('keydown', function(e) {
+    document.querySelector('.keys').addEventListener('keydown', function(e) {
         var key = e.key;
         if (key === 'Escape' || key === 'Delete') { e.preventDefault(); clearAll(); return; }
         if (keyMap.hasOwnProperty(key)) { e.preventDefault(); inputDigit(keyMap[key]); return; }
@@ -535,7 +535,7 @@
         if (key === '%') { e.preventDefault(); percent(); return; }
     });
 
-    // ── Currency Converter (bidirectional) ──
+    // ── Currency Converter (bidirectional, auto-refresh every 12h) ──
     var rates = {
         usd: 7.24,
         eur: 7.85,
@@ -563,37 +563,96 @@
         var rate = function() { return rates[rateKey]; };
         var converting = false;
 
-        function cnyChanged() {
+        function fxConvert(sourceInput, targetInput, isCnyToFx) {
             if (converting) return;
-            converting = true;
-            var v = parseVal(cnyInput);
+            var v = parseVal(sourceInput);
             if (isNaN(v)) {
-                foreignInput.value = '';
-            } else {
-                setVal(foreignInput, v / rate());
+                targetInput.value = '';
+                return;
             }
+            converting = true;
+            var result = isCnyToFx ? v / rate() : v * rate();
+            targetInput.value = result.toFixed(2);
             converting = false;
         }
 
-        function foreignChanged() {
-            if (converting) return;
-            converting = true;
-            var v = parseVal(foreignInput);
-            if (isNaN(v)) {
-                cnyInput.value = '';
-            } else {
-                setVal(cnyInput, v * rate());
-            }
-            converting = false;
-        }
-
-        cnyInput.addEventListener('input', cnyChanged);
-        foreignInput.addEventListener('input', foreignChanged);
+        cnyInput.addEventListener('input', function() {
+            fxConvert(cnyInput, foreignInput, true);
+        });
+        foreignInput.addEventListener('input', function() {
+            fxConvert(foreignInput, cnyInput, false);
+        });
     }
 
     setupBidirectional('cny-usd', 'usd-cny', 'usd');
     setupBidirectional('cny-eur', 'eur-cny', 'eur');
     setupBidirectional('cny-coin', 'coin-cny', 'coin');
+
+    // ── Auto-refresh rates every 12 hours ──
+    // Try to fetch live rates from a public API (hardcoded fallback if unavailable)
+    function updateDisplayedRates() {
+        document.getElementById('rate-usd').textContent = '1 USD = ' + rates.usd.toFixed(2) + ' CNY';
+        document.getElementById('rate-eur').textContent = '1 EUR = ' + rates.eur.toFixed(2) + ' CNY';
+        document.getElementById('rate-coin').textContent = '1 COIN = ' + rates.coin.toFixed(2) + ' CNY';
+    }
+    updateDisplayedRates();
+
+    // LocalStorage key for rate cache
+    var RATES_KEY = '***';
+    var RATES_EXPIRY = 12 * 60 * 60 * 1000; // 12h
+
+    function loadCachedRates() {
+        try {
+            var raw = localStorage.getItem(RATES_KEY);
+            if (raw) {
+                var cached = JSON.parse(raw);
+                if (cached.ts && Date.now() - cached.ts < RATES_EXPIRY) {
+                    rates.usd = cached.usd;
+                    rates.eur = cached.eur;
+                    updateDisplayedRates();
+                    return true;
+                }
+            }
+        } catch(e) {}
+        return false;
+    }
+
+    function fetchLiveRates() {
+        // Use exchangerate-api.com (free tier, no API key needed for basic access)
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'https://open.er-api.com/v6/latest/CNY', true);
+        xhr.timeout = 5000;
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data && data.rates) {
+                        if (data.rates.USD) rates.usd = 1 / data.rates.USD;
+                        if (data.rates.EUR) rates.eur = 1 / data.rates.EUR;
+                        updateDisplayedRates();
+                        try {
+                            localStorage.setItem(RATES_KEY, JSON.stringify({
+                                ts: Date.now(),
+                                usd: rates.usd,
+                                eur: rates.eur
+                            }));
+                        } catch(e) {}
+                    }
+                } catch(e) {}
+            }
+        };
+        xhr.onerror = function() {
+            // API unavailable, keep current (possibly cached) rates
+        };
+        xhr.send();
+    }
+
+    // Init: use cached, then try live
+    if (!loadCachedRates()) {
+        fetchLiveRates();
+    }
+    // Refresh every 12 hours
+    setInterval(fetchLiveRates, RATES_EXPIRY);
 })();
 </script>
 </body>
