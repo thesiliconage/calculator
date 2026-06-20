@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'none'; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; frame-ancestors 'self'; base-uri 'self'; form-action 'self'">
-    <title>TimeTracer</title>
+    <title>Calculator</title>
     <style>
-        /* Self-hosted fonts (no external requests) */
         @font-face{font-family:'Inter';font-style:normal;font-weight:200;font-display:swap;src:url(fonts/inter-200.woff2) format('woff2')}
         @font-face{font-family:'Inter';font-style:normal;font-weight:300;font-display:swap;src:url(fonts/inter-300.woff2) format('woff2')}
         @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/inter-400.woff2) format('woff2')}
@@ -19,402 +18,445 @@
         @font-face{font-family:'JetBrains Mono';font-style:normal;font-weight:500;font-display:swap;src:url(fonts/jbm-500.woff2) format('woff2')}
     </style>
     <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg: #f5f5f7; --card: #fff; --ink: #1d1d1f; --muted: #86868b;
-            --border: rgba(0,0,0,0.04); --accent: #0071e3; --accent2: #ff6b35;
-            --mono: 'JetBrains Mono', monospace;
+            --bg: #0a0a0f;
+            --card: #12121a;
+            --card-border: #1e1e2e;
+            --ink: #e4e4ec;
+            --muted: #6b6b7a;
+            --accent: #4f8cff;
+            --accent2: #ff6b35;
+            --mono: 'JetBrains Mono', 'Cascadia Code', monospace;
+            --font: 'Inter', -apple-system, sans-serif;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        html { font-size: 16px; }
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            padding: 20px;
+        }
 
-        .top-bar { position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 100; background: rgba(0,0,0,0.03); }
-        .top-bar-fill { height: 100%; width: 0; background: linear-gradient(90deg, #0071e3, #34c759, #ff9500, #ff3b30); background-size: 300% 100%; animation: shimmer 3s linear infinite; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }
-        @keyframes shimmer { 0% { background-position: 0% 0 } 100% { background-position: 300% 0 } }
-        .shell { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
+        .calc {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 24px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.02), 0 20px 60px rgba(0,0,0,0.5);
+        }
 
-        .clock-section { text-align: center; padding: 28px 0 24px; opacity: 0; transform: translateY(8px); animation: fi .6s .05s ease-out forwards; }
-        .clock-time { font-family: var(--mono); font-size: 40px; font-weight: 200; color: var(--ink); letter-spacing: 2px; line-height: 1; font-variant-numeric: tabular-nums; }
-        .clock-sec { font-size: 20px; color: var(--muted); font-weight: 200; }
-        .clock-date { font-size: 13px; color: var(--muted); margin-top: 8px; letter-spacing: 3px; font-weight: 400; }
+        .calc-title {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 20px;
+            text-align: center;
+        }
 
-        .hero { background: var(--card); border-radius: 20px; padding: 28px 32px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.02); border: 1px solid var(--border); opacity: 0; transform: translateY(12px); animation: fi .6s .1s ease-out forwards; }
-        .hero-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-        .hero-label { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
-        .hero-pct { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--accent); }
-        .hero-bar { position: relative; height: 28px; border-radius: 14px; background: #f0f0f2; overflow: hidden; }
-        .hero-fill { position: absolute; top: 0; left: 0; bottom: 0; border-radius: 14px; background: linear-gradient(90deg, #0071e3, #5ac8fa, #34c759, #ff9500); background-size: 400% 100%; animation: heroShimmer 6s linear infinite; transition: width 1.2s cubic-bezier(0.22,1,0.36,1); }
-        @keyframes heroShimmer { 0% { background-position: 0% 0 } 100% { background-position: 400% 0 } }
-        .hero-fill::after { content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 60px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3)); }
-        .hero-ends { display: flex; justify-content: space-between; margin-top: 8px; font-family: var(--mono); font-size: 10px; color: var(--muted); }
-        .hero-glow { position: absolute; top: -2px; right: -2px; bottom: -2px; width: 8px; border-radius: 0 14px 14px 0; background: #fff; box-shadow: 0 0 12px 3px rgba(255,149,0,0.4); animation: glow 2s ease-in-out infinite; }
-        @keyframes glow { 0%,100% { opacity: 0.6 } 50% { opacity: 1 } }
+        .display {
+            font-family: var(--mono);
+            font-weight: 300;
+            font-size: 28px;
+            text-align: right;
+            padding: 16px 20px;
+            background: #0e0e18;
+            border-radius: 16px;
+            border: 1px solid #1a1a28;
+            margin-bottom: 20px;
+            min-height: 72px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+            line-height: 1.3;
+            font-variant-numeric: tabular-nums;
+        }
+        .display .expr {
+            font-size: 14px;
+            color: var(--muted);
+            font-weight: 300;
+            min-height: 1.4em;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+        .display .result {
+            font-size: 32px;
+            color: var(--ink);
+            font-weight: 200;
+            transition: color 0.15s;
+            min-height: 1.3em;
+        }
+        .display .result.error {
+            color: #ff5555;
+        }
 
-        .year-bar { background: var(--card); border-radius: 20px; padding: 20px 32px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.02); border: 1px solid var(--border); opacity: 0; transform: translateY(12px); animation: fi .6s .15s ease-out forwards; }
-        .year-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .year-label { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
-        .year-pct { font-family: var(--mono); font-size: 12px; font-weight: 400; color: #8b5cf6; }
-        .year-track { position: relative; height: 28px; border-radius: 6px; background: #f0f0f2; overflow: visible; margin: 8px 0 4px; }
-        .year-fill { position: absolute; top: 0; left: 0; bottom: 0; border-radius: 6px; background: linear-gradient(90deg, #8b5cf6, #a78bfa, #c4b5fd); transition: width 1.2s cubic-bezier(0.22,1,0.36,1); }
-        .year-ruler { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-        .year-tick { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(0,0,0,0.08); }
-        .year-tick-label { position: absolute; bottom: -16px; font-family: var(--mono); font-size: 8px; color: #aeaeb2; transform: translateX(-50%); letter-spacing: 0.5px; }
-        .year-ends { display: flex; justify-content: space-between; margin-top: 14px; font-family: var(--mono); font-size: 10px; color: var(--muted); }
+        .keys {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
 
-        .tw-section { background: var(--card); border-radius: 20px; padding: 24px 32px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.02); border: 1px solid var(--border); opacity: 0; transform: translateY(12px); animation: fi .6s .2s ease-out forwards; }
-        .tw-line { font-family: var(--mono); font-size: 14px; font-weight: 300; line-height: 2; color: var(--ink); white-space: nowrap; overflow: hidden; min-height: 2em; }
-        .tw-cursor { display: inline-block; width: 2px; height: 1em; background: var(--accent); margin-left: 2px; vertical-align: text-bottom; animation: blink 1s step-end infinite; }
-        @keyframes blink { 50% { opacity: 0 } }
-        .tw-num { color: var(--accent); font-weight: 500; }
-        .tw-num2 { color: var(--accent2); font-weight: 500; }
-        .tw-num3 { color: #34c759; font-weight: 500; }
-        @keyframes fi { to { opacity: 1; transform: translateY(0); } }
+        .key {
+            font-family: var(--font);
+            font-size: 18px;
+            font-weight: 400;
+            padding: 16px 0;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            background: #191926;
+            color: var(--ink);
+            transition: background 0.1s, transform 0.05s;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .key:active {
+            transform: scale(0.94);
+        }
+        .key.num {
+            background: #191926;
+        }
+        .key.num:hover {
+            background: #222233;
+        }
+        .key.op {
+            background: #1a1a3a;
+            color: var(--accent);
+        }
+        .key.op:hover {
+            background: #262650;
+        }
+        .key.fn {
+            background: #1e1e28;
+            color: var(--muted);
+        }
+        .key.fn:hover {
+            background: #2a2a38;
+        }
+        .key.eq {
+            background: #3a5ccc;
+            color: #fff;
+        }
+        .key.eq:hover {
+            background: #4f70e0;
+        }
+        .key.span2 {
+            grid-column: span 2;
+        }
 
-        .gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-        .card { background: var(--card); border-radius: 20px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.02); border: 1px solid var(--border); opacity: 0; transform: translateY(12px); animation: fi .6s ease-out forwards; }
-        .card.d3 { animation-delay: .3s } .card.d4 { animation-delay: .4s } .card.d5 { animation-delay: .5s }
-        .card-tag { font-size: 10px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 16px; }
-        .gauge-wrap { display: flex; align-items: center; gap: 24px; }
-        .gauge-svg { flex-shrink: 0; }
-        .gauge-info { flex: 1; }
-        .gauge-pct { font-family: var(--mono); font-size: 32px; font-weight: 200; color: var(--ink); line-height: 1; }
-        .gauge-pct small { font-size: 16px; color: var(--muted); }
-        .gauge-meta { margin-top: 10px; }
-        .gauge-meta-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 11px; }
-        .gauge-meta-row .gk { color: var(--muted); }
-        .gauge-meta-row .gv { font-family: var(--mono); font-weight: 400; color: var(--ink); }
+        @media (max-width: 400px) {
+            .calc { padding: 16px; }
+            .key { font-size: 16px; padding: 14px 0; }
+            .display { padding: 12px 16px; font-size: 24px; }
+            .display .result { font-size: 28px; }
+        }
 
-        .detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-        .d-col-title { font-size: 9px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: #8b5cf6; padding: 0 14px 6px; }
-        .d-col-title.career { color: #ff6b35; }
-        .d-col-title.remaining { color: #0071e3; }
-        .d-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 12px; background: #f8fafc; border: 1px solid #f1f5f9; transition: background 0.2s; }
-        .d-item:hover { background: #f1f5f9; }
-        .d-key { font-size: 11px; color: #64748b; }
-        .d-val { font-family: var(--mono); font-size: 13px; font-weight: 400; color: var(--ink); }
-
-        .footer { text-align: center; margin-top: 40px; font-size: 10px; color: #c7c7cc; letter-spacing: 2px; text-transform: uppercase; }
-
-        @media (max-width: 640px) {
-            .gauges { grid-template-columns: 1fr; } .gauge-pct { font-size: 26px; }
-            .hero, .year-bar, .tw-section { padding: 20px; } .tw-line { font-size: 12px; }
-            .detail-grid { grid-template-columns: 1fr; }
+        @media (min-width: 768px) {
+            .calc { max-width: 380px; padding: 28px; }
+            .key { font-size: 20px; padding: 18px 0; }
         }
     </style>
 </head>
 <body>
-
-<div class="top-bar"><div class="top-bar-fill" id="top-bar-fill"></div></div>
-
-<div class="shell">
-    <div class="clock-section">
-        <div class="clock-time" id="clock-time">--:--<span class="clock-sec" id="clock-sec">--</span></div>
-        <div class="clock-date" id="clock-date">-------- -- ----</div>
+<div class="calc" role="application" aria-label="Calculator">
+    <div class="calc-title">Calculator</div>
+    <div class="display">
+        <div class="expr" id="expr" aria-live="polite"></div>
+        <div class="result" id="result" aria-live="assertive">0</div>
     </div>
+    <div class="keys">
+        <button class="key fn" data-action="clear">AC</button>
+        <button class="key fn" data-action="sign">+/-</button>
+        <button class="key fn" data-action="percent">%</button>
+        <button class="key op" data-action="divide">&divide;</button>
 
-    <div class="hero">
-        <div class="hero-row">
-            <div class="hero-label">Life Progress</div>
-            <div class="hero-pct" id="hero-pct">--%</div>
-        </div>
-        <div class="hero-bar"><div class="hero-fill" id="hero-fill"><div class="hero-glow"></div></div></div>
-        <div class="hero-ends"><span id="hero-start"></span><span id="hero-end"></span></div>
+        <button class="key num" data-value="7">7</button>
+        <button class="key num" data-value="8">8</button>
+        <button class="key num" data-value="9">9</button>
+        <button class="key op" data-action="multiply">&times;</button>
+
+        <button class="key num" data-value="4">4</button>
+        <button class="key num" data-value="5">5</button>
+        <button class="key num" data-value="6">6</button>
+        <button class="key op" data-action="subtract">-</button>
+
+        <button class="key num" data-value="1">1</button>
+        <button class="key num" data-value="2">2</button>
+        <button class="key num" data-value="3">3</button>
+        <button class="key op" data-action="add">+</button>
+
+        <button class="key num span2" data-value="0">0</button>
+        <button class="key num" data-value=".">.</button>
+        <button class="key eq" data-action="equals">=</button>
     </div>
-
-    <div class="year-bar">
-        <div class="year-row">
-            <div class="year-label">This Year</div>
-            <div class="year-pct" id="year-pct">--%</div>
-        </div>
-        <div class="year-track"><div class="year-fill" id="year-fill"></div><div class="year-ruler" id="year-ruler"></div></div>
-        <div class="year-ends"><span id="year-start">-----</span><span id="year-end">-----</span></div>
-    </div>
-
-    <div class="tw-section"><div class="tw-line" id="tw-main"></div></div>
-
-    <div class="gauges">
-        <div class="card d3">
-            <div class="card-tag">Life</div>
-            <div class="gauge-wrap">
-                <svg class="gauge-svg" width="110" height="110" viewBox="0 0 110 110">
-                    <circle cx="55" cy="55" r="46" fill="none" stroke="#f0f0f2" stroke-width="8"/>
-                    <circle id="g-life" cx="55" cy="55" r="46" fill="none" stroke="url(#grad1)" stroke-width="8" stroke-linecap="round" stroke-dasharray="289.03" stroke-dashoffset="289.03" transform="rotate(-90 55 55)" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1)"/>
-                    <defs><linearGradient id="grad1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0071e3"/><stop offset="100%" stop-color="#34c759"/></linearGradient></defs>
-                </svg>
-                <div class="gauge-info">
-                    <div class="gauge-pct"><span id="g-life-pct-val">--</span><small>%</small></div>
-                    <div class="gauge-meta">
-                        <div class="gauge-meta-row"><span class="gk">Lived</span><span class="gv" id="g-lived">--</span></div>
-                        <div class="gauge-meta-row"><span class="gk">Ahead</span><span class="gv" id="g-left">--</span></div>
-                        <div class="gauge-meta-row"><span class="gk">Total</span><span class="gv" id="g-total">--</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="card d4">
-            <div class="card-tag">Career</div>
-            <div class="gauge-wrap">
-                <svg class="gauge-svg" width="110" height="110" viewBox="0 0 110 110">
-                    <circle cx="55" cy="55" r="46" fill="none" stroke="#f0f0f2" stroke-width="8"/>
-                    <circle id="g-career" cx="55" cy="55" r="46" fill="none" stroke="url(#grad2)" stroke-width="8" stroke-linecap="round" stroke-dasharray="289.03" stroke-dashoffset="289.03" transform="rotate(-90 55 55)" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1)"/>
-                    <defs><linearGradient id="grad2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff6b35"/><stop offset="100%" stop-color="#ff9500"/></linearGradient></defs>
-                </svg>
-                <div class="gauge-info">
-                    <div class="gauge-pct"><span id="g-career-pct-val">--</span><small>%</small></div>
-                    <div class="gauge-meta">
-                        <div class="gauge-meta-row"><span class="gk">Worked</span><span class="gv" id="g-worked">--</span></div>
-                        <div class="gauge-meta-row"><span class="gk">Until Retire</span><span class="gv" id="g-toretire">--</span></div>
-                        <div class="gauge-meta-row"><span class="gk">Total</span><span class="gv" id="g-career-total">--</span></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="card d5">
-        <div class="card-tag">Details</div>
-        <div class="detail-grid">
-            <div class="d-col"><div class="d-col-title">Lived</div>
-                <div class="d-item"><span class="d-key">Hours</span><span class="d-val" id="d-hours">--</span></div>
-                <div class="d-item"><span class="d-key">Days</span><span class="d-val" id="d-days">--</span></div>
-                <div class="d-item"><span class="d-key">Months</span><span class="d-val" id="d-months">--</span></div>
-                <div class="d-item"><span class="d-key">Years</span><span class="d-val" id="d-years">--</span></div>
-            </div>
-            <div class="d-col"><div class="d-col-title remaining">Ahead</div>
-                <div class="d-item"><span class="d-key">Hours</span><span class="d-val" id="d-hours-left">--</span></div>
-                <div class="d-item"><span class="d-key">Days</span><span class="d-val" id="d-days-left">--</span></div>
-                <div class="d-item"><span class="d-key">Months</span><span class="d-val" id="d-months-left">--</span></div>
-                <div class="d-item"><span class="d-key">Years</span><span class="d-val" id="d-years-left">--</span></div>
-            </div>
-            <div class="d-col"><div class="d-col-title career">Career</div>
-                <div class="d-item"><span class="d-key">Months</span><span class="d-val" id="d-worked-m">--</span></div>
-                <div class="d-item"><span class="d-key">Years</span><span class="d-val" id="d-worked-y">--</span></div>
-                <div class="d-item"><span class="d-key">Months Left</span><span class="d-val" id="d-retire-m">--</span></div>
-                <div class="d-item"><span class="d-key">Years Left</span><span class="d-val" id="d-retire-y">--</span></div>
-            </div>
-        </div>
-    </div>
-
-
 </div>
 
 <script>
 (function() {
     'use strict';
 
-    // ── Date components (math-split obfuscation) ──
-    function _s(a, b) { return a + b; }
-    function _n(a, b) { return a - b; }
-    var _by = _s(666, 1325);    var _bm = _n(12, 8);      var _bd = _n(18, 2);
-    var _wy = _s(888, 1131);    var _wm = _n(16, 9);      var _wd = _n(9, 8);
-    var _ry = _s(1688, 366);    var _rm = _n(12, 8);      var _rd = _n(18, 17);
-    var _ly = _n(99, 9);
-    var BIRTH = new Date(_by, _bm - 1, _bd);
-    var WORK_START = new Date(_wy, _wm - 1, _wd);
-    var RETIRE = new Date(_ry, _rm - 1, _rd);
-    var LIFE_YEARS = _ly;
-    var LIFE_END = new Date(BIRTH.getFullYear() + LIFE_YEARS, BIRTH.getMonth(), BIRTH.getDate());
-    var LIFE_DAYS = Math.round((LIFE_END - BIRTH) / 86400000);
-    var CAREER_DAYS = Math.round((RETIRE - WORK_START) / 86400000);
-    var CIRC = 2 * Math.PI * 46;
+    var state = {
+        display: '0',
+        expr: '',
+        prev: null,
+        op: null,
+        justEvaluated: false,
+        hasDot: false,
+        error: false
+    };
 
-    var $ = function(id) { return document.getElementById(id); };
-    function fmt(n) { return n.toLocaleString('en-US'); }
+    var elExpr = document.getElementById('expr');
+    var elResult = document.getElementById('result');
 
-    // ── DOM refs (cached) ──
-    var elClockTime = $('clock-time');
-    var elClockSec = $('clock-sec');
-    var elClockDate = $('clock-date');
-    var elHeroFill = $('hero-fill');
-    var elHeroPct = $('hero-pct');
-    var elHeroStart = $('hero-start');
-    var elHeroEnd = $('hero-end');
-    var elTopBar = $('top-bar-fill');
-    var elYearFill = $('year-fill');
-    var elYearPct = $('year-pct');
-    var elYearStart = $('year-start');
-    var elYearEnd = $('year-end');
-    var elYearRuler = $('year-ruler');
-    var elGLife = $('g-life');
-    var elGLifePct = $('g-life-pct-val');
-    var elGLived = $('g-lived');
-    var elGLeft = $('g-left');
-    var elGTotal = $('g-total');
-    var elGCareer = $('g-career');
-    var elGCareerPct = $('g-career-pct-val');
-    var elGWorked = $('g-worked');
-    var elGToretire = $('g-toretire');
-    var elGCareerTotal = $('g-career-total');
-    var elTwMain = $('tw-main');
-
-    var DAYS_FULL = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    var MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    var MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
-    function beijingNow() {
-        var now = new Date();
-        var utc = now.getTime() + now.getTimezoneOffset() * 60000;
-        return new Date(utc + 8 * 3600000);
-    }
-    function daysSince(date) {
-        var bj = beijingNow();
-        var bjToday = new Date(bj.getFullYear(), bj.getMonth(), bj.getDate());
-        return Math.floor((bjToday - date) / 86400000);
-    }
-    function daysUntil(date) {
-        var bj = beijingNow();
-        var bjToday = new Date(bj.getFullYear(), bj.getMonth(), bj.getDate());
-        var diff = Math.ceil((date - bjToday) / 86400000);
-        return diff > 0 ? diff : 0;
-    }
-
-    // ── Tick ──
-    var lastYear = null;
-    function tick() {
-        var now = Date.now();
-        var lived = now - BIRTH.getTime();
-        var left = Math.max(0, LIFE_END.getTime() - now);
-        var worked = Math.max(0, now - WORK_START.getTime());
-        var toRetire = Math.max(0, RETIRE.getTime() - now);
-        var livedDays = Math.floor(lived / 86400000);
-        var leftDays = Math.ceil(left / 86400000);
-        var workedDays = Math.floor(worked / 86400000);
-        var retireDays = Math.ceil(toRetire / 86400000);
-        var lifePct = Math.min(100, lived / (LIFE_END.getTime() - BIRTH.getTime()) * 100);
-        var careerPct = Math.min(100, Math.max(0, worked / (RETIRE.getTime() - WORK_START.getTime()) * 100));
-
-        // Clock — textContent only
-        var dNow = new Date();
-        var h = String(dNow.getHours()).padStart(2, '0');
-        var m = String(dNow.getMinutes()).padStart(2, '0');
-        var s = String(dNow.getSeconds()).padStart(2, '0');
-        elClockTime.firstChild.textContent = h + ':' + m + ':';
-        elClockSec.textContent = s;
-        elClockDate.textContent = DAYS_FULL[dNow.getDay()] + ', ' + MONTHS_FULL[dNow.getMonth()] + ' ' + dNow.getDate() + ', ' + dNow.getFullYear();
-
-        // Hero
-        elHeroFill.style.width = lifePct.toFixed(2) + '%';
-        elHeroPct.textContent = lifePct.toFixed(2) + '%';
-        elHeroStart.textContent = BIRTH.getFullYear();
-        elHeroEnd.textContent = LIFE_END.getFullYear();
-        elTopBar.style.width = lifePct.toFixed(2) + '%';
-
-        // Year progress
-        var yearStart = new Date(dNow.getFullYear(), 0, 1);
-        var yearEnd = new Date(dNow.getFullYear() + 1, 0, 1);
-        var yearPct = Math.min(100, (now - yearStart.getTime()) / (yearEnd.getTime() - yearStart.getTime()) * 100);
-        elYearFill.style.width = yearPct.toFixed(2) + '%';
-        elYearPct.textContent = yearPct.toFixed(2) + '%';
-        elYearStart.textContent = dNow.getFullYear();
-        elYearEnd.textContent = dNow.getFullYear() + 1;
-
-        // Year ruler ticks (once per year)
-        if (lastYear !== dNow.getFullYear()) {
-            lastYear = dNow.getFullYear();
-            var frag = document.createDocumentFragment();
-            var isLeap = new Date(dNow.getFullYear(), 1, 29).getMonth() === 1;
-            var yearDays = isLeap ? 366 : 365;
-            for (var mi = 0; mi < 12; mi++) {
-                var dayOfYear = Math.round((new Date(dNow.getFullYear(), mi, 1) - yearStart) / 86400000);
-                var pct = (dayOfYear / yearDays) * 100;
-                var tick = document.createElement('div');
-                tick.className = 'year-tick';
-                tick.style.left = pct + '%';
-                frag.appendChild(tick);
-                if (mi > 0) {
-                    var label = document.createElement('div');
-                    label.className = 'year-tick-label';
-                    label.style.left = pct + '%';
-                    label.textContent = MONTHS_SHORT[mi];
-                    frag.appendChild(label);
-                }
+    function updateDisplay() {
+        var num = state.display;
+        // truncate very long decimals to avoid overflow
+        if (num.length > 16) {
+            var dot = num.indexOf('.');
+            if (dot >= 0) {
+                num = num.slice(0, 16);
+                if (num.endsWith('.')) num = num.slice(0, -1);
             }
-            elYearRuler.innerHTML = '';
-            elYearRuler.appendChild(frag);
         }
-
-        // Life gauge — textContent only
-        elGLife.style.strokeDashoffset = CIRC * (1 - lifePct / 100);
-        elGLifePct.textContent = lifePct.toFixed(2);
-        elGLived.textContent = fmt(livedDays);
-        elGLeft.textContent = fmt(leftDays);
-        elGTotal.textContent = fmt(LIFE_DAYS);
-
-        // Career gauge — textContent only
-        elGCareer.style.strokeDashoffset = CIRC * (1 - careerPct / 100);
-        elGCareerPct.textContent = careerPct.toFixed(2);
-        elGWorked.textContent = fmt(workedDays);
-        elGToretire.textContent = fmt(retireDays);
-        elGCareerTotal.textContent = fmt(CAREER_DAYS);
-
-        // Details — textContent only
-        $('d-hours').textContent = fmt(Math.floor(lived / 3600000));
-        $('d-days').textContent = fmt(livedDays);
-        $('d-months').textContent = fmt(Math.floor(livedDays / 30.44));
-        $('d-years').textContent = (livedDays / 365.25).toFixed(2);
-        $('d-hours-left').textContent = fmt(Math.floor(left / 3600000));
-        $('d-days-left').textContent = fmt(leftDays);
-        $('d-months-left').textContent = fmt(Math.ceil(leftDays / 30.44));
-        $('d-years-left').textContent = (leftDays / 365.25).toFixed(2);
-        var workedMonths = Math.floor(workedDays / 30.44);
-        $('d-worked-m').textContent = fmt(workedMonths);
-        $('d-worked-y').textContent = (workedDays / 365.25).toFixed(2);
-        $('d-retire-m').textContent = fmt(Math.ceil(retireDays / 30.44));
-        $('d-retire-y').textContent = (retireDays / 365.25).toFixed(2);
+        state.display = num;
+        elResult.textContent = num;
+        elExpr.textContent = state.expr;
+        elResult.classList.toggle('error', state.error);
     }
 
-    tick();
-    var timer = setInterval(tick, 1000);
+    function formatNum(n) {
+        if (Math.abs(n) > 1e15 || (Math.abs(n) < 1e-10 && n !== 0)) {
+            return n.toExponential(6);
+        }
+        var s = String(n);
+        // if it's a float with many digits, limit to 10 decimal places
+        var dot = s.indexOf('.');
+        if (dot >= 0 && s.length - dot - 1 > 10) {
+            s = n.toFixed(10);
+            // trim trailing zeros
+            s = s.replace(/\.?0+$/, '');
+        }
+        return s;
+    }
 
-    // ── Visibility pause ──
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) { clearInterval(timer); timer = null; }
-        else { tick(); timer = setInterval(tick, 1000); }
+    function inputDigit(d) {
+        if (state.error) { clearAll(); }
+        if (state.justEvaluated) {
+            state.expr = '';
+            state.display = d === '.' ? '0.' : d;
+            state.hasDot = d === '.';
+            state.justEvaluated = false;
+            updateDisplay();
+            return;
+        }
+        if (d === '.') {
+            if (state.hasDot) return;
+            state.hasDot = true;
+            state.display += '.';
+        } else {
+            if (state.display === '0') {
+                state.display = d;
+            } else {
+                state.display += d;
+            }
+        }
+        updateDisplay();
+    }
+
+    function clearAll() {
+        state.display = '0';
+        state.expr = '';
+        state.prev = null;
+        state.op = null;
+        state.justEvaluated = false;
+        state.hasDot = false;
+        state.error = false;
+        updateDisplay();
+    }
+
+    function toggleSign() {
+        if (state.error) { clearAll(); return; }
+        if (state.justEvaluated) {
+            state.expr = '';
+            state.justEvaluated = false;
+        }
+        if (state.display === '0') return;
+        state.display = state.display.startsWith('-')
+            ? state.display.slice(1)
+            : '-' + state.display;
+        updateDisplay();
+    }
+
+    function percent() {
+        if (state.error) { clearAll(); return; }
+        if (state.justEvaluated) {
+            state.expr = '';
+            state.justEvaluated = false;
+        }
+        var n = parseFloat(state.display);
+        if (isNaN(n)) return;
+        state.display = formatNum(n / 100);
+        updateDisplay();
+    }
+
+    function setOp(op) {
+        if (state.error) { clearAll(); }
+        var cur = parseFloat(state.display);
+        if (isNaN(cur)) return;
+        if (state.prev !== null && !state.justEvaluated) {
+            // chain
+            var result = compute(state.prev, cur, state.op);
+            if (state.error) { updateDisplay(); return; }
+            state.display = formatNum(result);
+            state.prev = result;
+        } else {
+            state.prev = cur;
+        }
+        state.op = op;
+        state.justEvaluated = false;
+        state.hasDot = false;
+        state.expr = state.display + ' ' + opToChar(op) + ' ';
+        updateDisplay();
+    }
+
+    function opToChar(op) {
+        switch (op) {
+            case 'add': return '+';
+            case 'subtract': return '-';
+            case 'multiply': return '\u00d7';
+            case 'divide': return '\u00f7';
+            default: return '?';
+        }
+    }
+
+    function compute(a, b, op) {
+        switch (op) {
+            case 'add': return a + b;
+            case 'subtract': return a - b;
+            case 'multiply': return a * b;
+            case 'divide':
+                if (b === 0) {
+                    state.error = true;
+                    return NaN;
+                }
+                return a / b;
+            default: return b;
+        }
+    }
+
+    function evaluate() {
+        if (state.error) { clearAll(); return; }
+        if (state.op === null) {
+            state.justEvaluated = true;
+            state.expr = state.display + ' =';
+            updateDisplay();
+            return;
+        }
+        var cur = parseFloat(state.display);
+        if (isNaN(cur)) return;
+        var result = compute(state.prev, cur, state.op);
+        if (state.error) {
+            state.expr = state.prev + ' ' + opToChar(state.op) + ' ' + cur;
+            state.display = 'Error';
+            updateDisplay();
+            return;
+        }
+        state.expr = state.prev + ' ' + opToChar(state.op) + ' ' + cur + ' =';
+        state.display = formatNum(result);
+        state.prev = result;
+        state.op = null;
+        state.justEvaluated = true;
+        state.hasDot = state.display.indexOf('.') >= 0;
+        updateDisplay();
+    }
+
+    // ── Event delegation ──
+    document.querySelector('.keys').addEventListener('click', function(e) {
+        var btn = e.target.closest('button');
+        if (!btn) return;
+
+        var action = btn.getAttribute('data-action');
+        var value = btn.getAttribute('data-value');
+
+        if (action === 'clear') { clearAll(); }
+        else if (action === 'sign') { toggleSign(); }
+        else if (action === 'percent') { percent(); }
+        else if (action === 'equals') { evaluate(); }
+        else if (action === 'add' || action === 'subtract' || action === 'multiply' || action === 'divide') { setOp(action); }
+        else if (value !== null) { inputDigit(value); }
     });
-    window.addEventListener('beforeunload', function() { clearInterval(timer); });
 
-    // ── Typewriter (with HTML escape) ──
-    function escapeHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+    // ── Keyboard support ──
+    var keyMap = {
+        '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
+        '5': '5', '6': '6', '7': '7', '8': '8', '9': '9',
+        '.': '.'
+    };
+    var opMap = {
+        '+': 'add', '-': 'subtract', '*': 'multiply', '/': 'divide'
+    };
 
-    var TW_LINES = [
-        { getText: function() { return fmt(daysSince(BIRTH)) + ' days in the world.'; }, cls: 'tw-num' },
-        { getText: function() { return fmt(daysSince(WORK_START)) + ' days at work.'; }, cls: 'tw-num2' },
-        { getText: function() { return fmt(daysUntil(RETIRE)) + ' days until the calendar is mine.'; }, cls: 'tw-num3' }
-    ];
+    document.addEventListener('keydown', function(e) {
+        var key = e.key;
 
-    function highlightNums(str, cls) {
-        return escapeHtml(str).replace(/([\d,]+)/g, '<span class="' + cls + '">$1</span>');
-    }
-
-    var twPaused = false;
-    document.addEventListener('visibilitychange', function() { twPaused = document.hidden; });
-
-    function typeErase(el, text, cls, cb) {
-        var i = 0, displayed = '';
-        function type() {
-            if (twPaused) { setTimeout(type, 100); return; }
-            if (i >= text.length) { setTimeout(erase, 2200); return; }
-            displayed += text[i];
-            el.innerHTML = highlightNums(displayed, cls) + '<span class="tw-cursor"></span>';
-            i++;
-            setTimeout(type, 25 + Math.random() * 35);
+        if (key === 'Escape' || key === 'Delete' || (key === 'c' && !e.ctrlKey && !e.metaKey)) {
+            e.preventDefault();
+            clearAll();
+            return;
         }
-        function erase() {
-            if (twPaused) { setTimeout(erase, 100); return; }
-            if (displayed.length === 0) { if (cb) cb(); return; }
-            displayed = displayed.slice(0, -1);
-            el.innerHTML = highlightNums(displayed, cls) + '<span class="tw-cursor"></span>';
-            setTimeout(erase, 12);
-        }
-        type();
-    }
 
-    function runCycle(idx) {
-        var line = TW_LINES[idx % TW_LINES.length];
-        typeErase(elTwMain, '> ' + line.getText(), line.cls, function() { runCycle(idx + 1); });
-    }
-    setTimeout(function() { runCycle(0); }, 800);
+        if (keyMap.hasOwnProperty(key)) {
+            e.preventDefault();
+            inputDigit(keyMap[key]);
+            return;
+        }
+
+        if (opMap.hasOwnProperty(key)) {
+            e.preventDefault();
+            setOp(opMap[key]);
+            return;
+        }
+
+        if (key === 'Enter' || key === '=') {
+            e.preventDefault();
+            evaluate();
+            return;
+        }
+
+        if (key === 'Backspace') {
+            e.preventDefault();
+            if (state.error) { clearAll(); return; }
+            if (state.justEvaluated) { clearAll(); return; }
+            if (state.display.length === 1 || (state.display.length === 2 && state.display.startsWith('-'))) {
+                state.display = '0';
+                state.hasDot = false;
+            } else {
+                var last = state.display[state.display.length - 1];
+                if (last === '.') state.hasDot = false;
+                state.display = state.display.slice(0, -1);
+            }
+            updateDisplay();
+            return;
+        }
+
+        if (key === '%') {
+            e.preventDefault();
+            percent();
+            return;
+        }
+    });
 })();
 </script>
-
 </body>
 </html>
