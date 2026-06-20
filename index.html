@@ -352,6 +352,7 @@
         prev: null,
         op: null,
         justEvaluated: false,
+        waitingOperand: false,
         hasDot: false,
         error: false
     };
@@ -388,11 +389,12 @@
 
     function inputDigit(d) {
         if (state.error) { clearAll(); }
-        if (state.justEvaluated) {
+        if (state.justEvaluated || state.waitingOperand) {
             state.expr = '';
             state.display = d === '.' ? '0.' : d;
             state.hasDot = d === '.';
             state.justEvaluated = false;
+            state.waitingOperand = false;
             updateDisplay();
             return;
         }
@@ -460,6 +462,7 @@
         }
         state.op = op;
         state.justEvaluated = false;
+        state.waitingOperand = true;
         state.hasDot = false;
         state.expr = state.display + ' ' + opToChar(op) + ' ';
         updateDisplay();
