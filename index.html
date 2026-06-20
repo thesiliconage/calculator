@@ -20,12 +20,12 @@
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg: #0a0a0f;
-            --card: #12121a;
-            --card-border: #1e1e2e;
-            --ink: #e4e4ec;
-            --muted: #6b6b7a;
-            --accent: #4f8cff;
+            --bg: #f5f5f7;
+            --card: #fff;
+            --card-border: rgba(0,0,0,0.08);
+            --ink: #1d1d1f;
+            --muted: #86868b;
+            --accent: #0071e3;
             --accent2: #ff6b35;
             --mono: 'JetBrains Mono', 'Cascadia Code', monospace;
             --font: 'Inter', -apple-system, sans-serif;
@@ -57,9 +57,9 @@
         .panel {
             background: var(--card);
             border: 1px solid var(--card-border);
-            border-radius: 24px;
+            border-radius: 20px;
             padding: 24px;
-            box-shadow: 0 0 0 1px rgba(255,255,255,0.02), 0 20px 60px rgba(0,0,0,0.5);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             flex: 1;
             min-width: 300px;
             max-width: 380px;
@@ -82,10 +82,10 @@
             font-size: 28px;
             text-align: right;
             padding: 16px 20px;
-            background: #0e0e18;
-            border-radius: 16px;
-            border: 1px solid #1a1a28;
-            margin-bottom: 20px;
+            background: #fafafa;
+            border-radius: 14px;
+            border: 1px solid #e8e8ed;
+            margin-bottom: 16px;
             min-height: 72px;
             display: flex;
             flex-direction: column;
@@ -105,46 +105,45 @@
         .display .result {
             font-size: 32px;
             color: var(--ink);
-            font-weight: 200;
+            font-weight: 400;
             transition: color 0.15s;
             min-height: 1.3em;
         }
         .display .result.error {
-            color: #ff5555;
+            color: #d0312d;
         }
         .keys {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 8px;
         }
         .key {
             font-family: var(--font);
             font-size: 18px;
-            font-weight: 400;
-            padding: 16px 0;
+            font-weight: 500;
+            padding: 14px 0;
             border: none;
-            border-radius: 14px;
+            border-radius: 12px;
             cursor: pointer;
-            background: #191926;
+            background: #f0f0f0;
             color: var(--ink);
             transition: background 0.1s, transform 0.05s;
             user-select: none;
             -webkit-user-select: none;
         }
         .key:active { transform: scale(0.94); }
-        .key.num { background: #191926; }
-        .key.num:hover { background: #222233; }
-        .key.op { background: #1a1a3a; color: var(--accent); }
-        .key.op:hover { background: #262650; }
-        .key.fn { background: #1e1e28; color: var(--muted); }
-        .key.fn:hover { background: #2a2a38; }
-        .key.eq { background: #3a5ccc; color: #fff; }
-        .key.eq:hover { background: #4f70e0; }
+        .key.num:hover { background: #e4e4e4; }
+        .key.op { background: #e8f0ff; color: var(--accent); }
+        .key.op:hover { background: #d6e4ff; }
+        .key.fn { background: #eaeaea; color: var(--muted); }
+        .key.fn:hover { background: #ddd; }
+        .key.eq { background: var(--accent); color: #fff; }
+        .key.eq:hover { background: #0062cc; }
         .key.span2 { grid-column: span 2; }
 
         /* ── Currency Converter ── */
         .fx-row {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         .fx-row:last-child {
             margin-bottom: 0;
@@ -154,7 +153,7 @@
             font-weight: 500;
             color: var(--muted);
             letter-spacing: 0.5px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -169,64 +168,55 @@
             color: var(--muted);
             margin-left: auto;
         }
-        .fx-input-wrap {
+        .fx-row-inner {
             display: flex;
-            gap: 8px;
+            flex-direction: row;
+            gap: 6px;
             align-items: center;
         }
-        .fx-input {
+        .fx-col {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .fx-curr-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted);
+            padding-left: 2px;
+        }
+        .fx-input {
+            width: 100%;
             font-family: var(--mono);
-            font-size: 16px;
-            font-weight: 300;
-            padding: 12px 14px;
-            background: #0e0e18;
-            border: 1px solid #1a1a28;
-            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 400;
+            padding: 10px 12px;
+            background: #fafafa;
+            border: 1px solid #e8e8ed;
+            border-radius: 10px;
             color: var(--ink);
             outline: none;
             transition: border-color 0.15s;
             font-variant-numeric: tabular-nums;
-            min-width: 0;
         }
         .fx-input:focus {
             border-color: var(--accent);
         }
         .fx-input::placeholder {
-            color: #3a3a4a;
+            color: #b0b0b8;
         }
-        .fx-arrow {
-            font-family: var(--font);
-            font-size: 18px;
-            color: var(--muted);
+        .fx-arrow-wrap {
             flex-shrink: 0;
-        }
-        .fx-currency {
-            font-family: var(--mono);
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--accent2);
-            flex-shrink: 0;
-            min-width: 32px;
-            text-align: right;
-        }
-        .fx-result {
-            font-family: var(--mono);
+            padding: 0 4px;
+            padding-top: 18px;
+            color: #c0c0c8;
             font-size: 16px;
-            font-weight: 300;
-            padding: 12px 14px;
-            background: #0e0e18;
-            border: 1px solid #1a1a28;
-            border-radius: 12px;
-            color: var(--accent);
-            flex: 1;
-            min-width: 0;
-            font-variant-numeric: tabular-nums;
         }
 
         .fx-note {
             font-size: 11px;
-            color: #3a3a4a;
+            color: #b0b0b8;
             text-align: center;
             margin-top: 20px;
             font-weight: 300;
@@ -277,43 +267,58 @@
         <div class="fx-row" id="fx-usd">
             <div class="fx-label">
                 <span class="pair">CNY / USD</span>
-                <span class="rate" id="rate-usd">1 USD = -- CNY</span>
+                <span class="rate" id="rate-usd">1 USD = 7.24 CNY</span>
             </div>
-            <div class="fx-input-wrap">
-                <input class="fx-input" type="text" inputmode="decimal" id="cny-usd" placeholder="CNY" autocomplete="off">
-                <span class="fx-arrow">&#8594;</span>
-                <span class="fx-result" id="usd-result">0.00</span>
-                <span class="fx-currency">USD</span>
+            <div class="fx-row-inner">
+                <div class="fx-col">
+                    <span class="fx-curr-label">CNY</span>
+                    <input class="fx-input" type="text" inputmode="decimal" data-fx="cny" data-rate="usd" id="cny-usd" placeholder="0.00" autocomplete="off">
+                </div>
+                <div class="fx-arrow-wrap">&#8596;</div>
+                <div class="fx-col">
+                    <span class="fx-curr-label">USD</span>
+                    <input class="fx-input" type="text" inputmode="decimal" data-fx="foreign" data-rate="usd" id="usd-cny" placeholder="0.00" autocomplete="off">
+                </div>
             </div>
         </div>
 
         <div class="fx-row" id="fx-eur">
             <div class="fx-label">
                 <span class="pair">CNY / EUR</span>
-                <span class="rate" id="rate-eur">1 EUR = -- CNY</span>
+                <span class="rate" id="rate-eur">1 EUR = 7.85 CNY</span>
             </div>
-            <div class="fx-input-wrap">
-                <input class="fx-input" type="text" inputmode="decimal" id="cny-eur" placeholder="CNY" autocomplete="off">
-                <span class="fx-arrow">&#8594;</span>
-                <span class="fx-result" id="eur-result">0.00</span>
-                <span class="fx-currency">EUR</span>
+            <div class="fx-row-inner">
+                <div class="fx-col">
+                    <span class="fx-curr-label">CNY</span>
+                    <input class="fx-input" type="text" inputmode="decimal" data-fx="cny" data-rate="eur" id="cny-eur" placeholder="0.00" autocomplete="off">
+                </div>
+                <div class="fx-arrow-wrap">&#8596;</div>
+                <div class="fx-col">
+                    <span class="fx-curr-label">EUR</span>
+                    <input class="fx-input" type="text" inputmode="decimal" data-fx="foreign" data-rate="eur" id="eur-cny" placeholder="0.00" autocomplete="off">
+                </div>
             </div>
         </div>
 
         <div class="fx-row" id="fx-coin">
             <div class="fx-label">
                 <span class="pair">CNY / Coin</span>
-                <span class="rate" id="rate-coin">1 CNY = 1.00 COIN</span>
+                <span class="rate" id="rate-coin">1 COIN = 1.00 CNY</span>
             </div>
-            <div class="fx-input-wrap">
-                <input class="fx-input" type="text" inputmode="decimal" id="cny-coin" placeholder="CNY" autocomplete="off">
-                <span class="fx-arrow">&#8594;</span>
-                <span class="fx-result" id="coin-result">0.00</span>
-                <span class="fx-currency">COIN</span>
+            <div class="fx-row-inner">
+                <div class="fx-col">
+                    <span class="fx-curr-label">CNY</span>
+                    <input class="fx-input" type="text" inputmode="decimal" data-fx="cny" data-rate="coin" id="cny-coin" placeholder="0.00" autocomplete="off">
+                </div>
+                <div class="fx-arrow-wrap">&#8596;</div>
+                <div class="fx-col">
+                    <span class="fx-curr-label">COIN</span>
+                    <input class="fx-input" type="text" inputmode="decimal" data-fx="foreign" data-rate="coin" id="coin-cny" placeholder="0.00" autocomplete="off">
+                </div>
             </div>
         </div>
 
-        <div class="fx-note">Rates updated daily. Coin value configurable.</div>
+        <div class="fx-note">Bidirectional conversion. Rates updated daily. Coin value configurable.</div>
     </div>
 </div>
 
@@ -530,52 +535,65 @@
         if (key === '%') { e.preventDefault(); percent(); return; }
     });
 
-    // ── Currency Converter ──
-    // Hardcoded approximate rates (updated manually when convenient)
+    // ── Currency Converter (bidirectional) ──
     var rates = {
-        usd: 7.24,     // 1 USD = 7.24 CNY
-        eur: 7.85,     // 1 EUR = 7.85 CNY
-        coin: 1.00     // 1 COIN = 1 CNY (configurable placeholder)
+        usd: 7.24,
+        eur: 7.85,
+        coin: 1.00
     };
 
-    function updateRateDisplay() {
-        document.getElementById('rate-usd').textContent = '1 USD = ' + rates.usd.toFixed(2) + ' CNY';
-        document.getElementById('rate-eur').textContent = '1 EUR = ' + rates.eur.toFixed(2) + ' CNY';
-        document.getElementById('rate-coin').textContent = '1 CNY = ' + rates.coin.toFixed(2) + ' COIN';
+    function parseVal(input) {
+        var raw = input.value.replace(/,/g, '').trim();
+        if (raw === '' || raw === '-') return NaN;
+        var v = parseFloat(raw);
+        return isFinite(v) ? v : NaN;
     }
-    updateRateDisplay();
 
-    function setupFx(inputId, resultId, rate) {
-        var input = document.getElementById(inputId);
-        var result = document.getElementById(resultId);
+    function setVal(input, val) {
+        if (isNaN(val) || !isFinite(val)) {
+            input.value = '';
+            return;
+        }
+        input.value = val.toFixed(2);
+    }
 
-        function convert() {
-            var raw = input.value.replace(/,/g, '');
-            if (raw === '' || raw === '-') {
-                result.textContent = '0.00';
-                return;
+    function setupBidirectional(cnyId, foreignId, rateKey) {
+        var cnyInput = document.getElementById(cnyId);
+        var foreignInput = document.getElementById(foreignId);
+        var rate = function() { return rates[rateKey]; };
+        var converting = false;
+
+        function cnyChanged() {
+            if (converting) return;
+            converting = true;
+            var v = parseVal(cnyInput);
+            if (isNaN(v)) {
+                foreignInput.value = '';
+            } else {
+                setVal(foreignInput, v / rate());
             }
-            var val = parseFloat(raw);
-            if (isNaN(val) || !isFinite(val)) {
-                result.textContent = '---';
-                return;
-            }
-            var converted = val / rate;
-            result.textContent = converted.toFixed(2);
+            converting = false;
         }
 
-        input.addEventListener('input', convert);
-        input.addEventListener('blur', function() {
-            var raw = input.value.replace(/,/g, '');
-            if (raw !== '' && !isNaN(parseFloat(raw)) && isFinite(parseFloat(raw))) {
-                input.value = parseFloat(raw).toFixed(2);
+        function foreignChanged() {
+            if (converting) return;
+            converting = true;
+            var v = parseVal(foreignInput);
+            if (isNaN(v)) {
+                cnyInput.value = '';
+            } else {
+                setVal(cnyInput, v * rate());
             }
-        });
+            converting = false;
+        }
+
+        cnyInput.addEventListener('input', cnyChanged);
+        foreignInput.addEventListener('input', foreignChanged);
     }
 
-    setupFx('cny-usd', 'usd-result', rates.usd);
-    setupFx('cny-eur', 'eur-result', rates.eur);
-    setupFx('cny-coin', 'coin-result', rates.coin);
+    setupBidirectional('cny-usd', 'usd-cny', 'usd');
+    setupBidirectional('cny-eur', 'eur-cny', 'eur');
+    setupBidirectional('cny-coin', 'coin-cny', 'coin');
 })();
 </script>
 </body>
