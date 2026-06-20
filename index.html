@@ -44,17 +44,28 @@
             padding: 20px;
         }
 
-        .calc {
+        .container {
+            display: flex;
+            gap: 24px;
+            width: 100%;
+            max-width: 780px;
+            align-items: flex-start;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .panel {
             background: var(--card);
             border: 1px solid var(--card-border);
             border-radius: 24px;
             padding: 24px;
-            width: 100%;
-            max-width: 360px;
             box-shadow: 0 0 0 1px rgba(255,255,255,0.02), 0 20px 60px rgba(0,0,0,0.5);
+            flex: 1;
+            min-width: 300px;
+            max-width: 380px;
         }
 
-        .calc-title {
+        .panel-title {
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 4px;
@@ -64,6 +75,7 @@
             text-align: center;
         }
 
+        /* ── Calculator ── */
         .display {
             font-family: var(--mono);
             font-weight: 300;
@@ -100,13 +112,11 @@
         .display .result.error {
             color: #ff5555;
         }
-
         .keys {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
         }
-
         .key {
             font-family: var(--font);
             font-size: 18px;
@@ -121,84 +131,189 @@
             user-select: none;
             -webkit-user-select: none;
         }
-        .key:active {
-            transform: scale(0.94);
+        .key:active { transform: scale(0.94); }
+        .key.num { background: #191926; }
+        .key.num:hover { background: #222233; }
+        .key.op { background: #1a1a3a; color: var(--accent); }
+        .key.op:hover { background: #262650; }
+        .key.fn { background: #1e1e28; color: var(--muted); }
+        .key.fn:hover { background: #2a2a38; }
+        .key.eq { background: #3a5ccc; color: #fff; }
+        .key.eq:hover { background: #4f70e0; }
+        .key.span2 { grid-column: span 2; }
+
+        /* ── Currency Converter ── */
+        .fx-row {
+            margin-bottom: 16px;
         }
-        .key.num {
-            background: #191926;
+        .fx-row:last-child {
+            margin-bottom: 0;
         }
-        .key.num:hover {
-            background: #222233;
-        }
-        .key.op {
-            background: #1a1a3a;
-            color: var(--accent);
-        }
-        .key.op:hover {
-            background: #262650;
-        }
-        .key.fn {
-            background: #1e1e28;
+        .fx-label {
+            font-size: 12px;
+            font-weight: 500;
             color: var(--muted);
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .key.fn:hover {
-            background: #2a2a38;
+        .fx-label .pair {
+            color: var(--accent);
+            font-weight: 600;
         }
-        .key.eq {
-            background: #3a5ccc;
-            color: #fff;
+        .fx-label .rate {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--muted);
+            margin-left: auto;
         }
-        .key.eq:hover {
-            background: #4f70e0;
+        .fx-input-wrap {
+            display: flex;
+            gap: 8px;
+            align-items: center;
         }
-        .key.span2 {
-            grid-column: span 2;
+        .fx-input {
+            flex: 1;
+            font-family: var(--mono);
+            font-size: 16px;
+            font-weight: 300;
+            padding: 12px 14px;
+            background: #0e0e18;
+            border: 1px solid #1a1a28;
+            border-radius: 12px;
+            color: var(--ink);
+            outline: none;
+            transition: border-color 0.15s;
+            font-variant-numeric: tabular-nums;
+            min-width: 0;
+        }
+        .fx-input:focus {
+            border-color: var(--accent);
+        }
+        .fx-input::placeholder {
+            color: #3a3a4a;
+        }
+        .fx-arrow {
+            font-family: var(--font);
+            font-size: 18px;
+            color: var(--muted);
+            flex-shrink: 0;
+        }
+        .fx-currency {
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--accent2);
+            flex-shrink: 0;
+            min-width: 32px;
+            text-align: right;
+        }
+        .fx-result {
+            font-family: var(--mono);
+            font-size: 16px;
+            font-weight: 300;
+            padding: 12px 14px;
+            background: #0e0e18;
+            border: 1px solid #1a1a28;
+            border-radius: 12px;
+            color: var(--accent);
+            flex: 1;
+            min-width: 0;
+            font-variant-numeric: tabular-nums;
         }
 
-        @media (max-width: 400px) {
-            .calc { padding: 16px; }
-            .key { font-size: 16px; padding: 14px 0; }
-            .display { padding: 12px 16px; font-size: 24px; }
-            .display .result { font-size: 28px; }
+        .fx-note {
+            font-size: 11px;
+            color: #3a3a4a;
+            text-align: center;
+            margin-top: 20px;
+            font-weight: 300;
         }
 
-        @media (min-width: 768px) {
-            .calc { max-width: 380px; padding: 28px; }
-            .key { font-size: 20px; padding: 18px 0; }
+        @media (max-width: 680px) {
+            .container { flex-direction: column; align-items: center; }
+            .panel { max-width: 100%; width: 100%; }
         }
     </style>
 </head>
 <body>
-<div class="calc" role="application" aria-label="Calculator">
-    <div class="calc-title">Calculator</div>
-    <div class="display">
-        <div class="expr" id="expr" aria-live="polite"></div>
-        <div class="result" id="result" aria-live="assertive">0</div>
+<div class="container">
+    <!-- Calculator -->
+    <div class="panel" role="application" aria-label="Calculator">
+        <div class="panel-title">Calculator</div>
+        <div class="display">
+            <div class="expr" id="expr" aria-live="polite"></div>
+            <div class="result" id="result" aria-live="assertive">0</div>
+        </div>
+        <div class="keys">
+            <button class="key fn" data-action="clear">AC</button>
+            <button class="key fn" data-action="sign">+/-</button>
+            <button class="key fn" data-action="percent">%</button>
+            <button class="key op" data-action="divide">&divide;</button>
+            <button class="key num" data-value="7">7</button>
+            <button class="key num" data-value="8">8</button>
+            <button class="key num" data-value="9">9</button>
+            <button class="key op" data-action="multiply">&times;</button>
+            <button class="key num" data-value="4">4</button>
+            <button class="key num" data-value="5">5</button>
+            <button class="key num" data-value="6">6</button>
+            <button class="key op" data-action="subtract">-</button>
+            <button class="key num" data-value="1">1</button>
+            <button class="key num" data-value="2">2</button>
+            <button class="key num" data-value="3">3</button>
+            <button class="key op" data-action="add">+</button>
+            <button class="key num span2" data-value="0">0</button>
+            <button class="key num" data-value=".">.</button>
+            <button class="key eq" data-action="equals">=</button>
+        </div>
     </div>
-    <div class="keys">
-        <button class="key fn" data-action="clear">AC</button>
-        <button class="key fn" data-action="sign">+/-</button>
-        <button class="key fn" data-action="percent">%</button>
-        <button class="key op" data-action="divide">&divide;</button>
 
-        <button class="key num" data-value="7">7</button>
-        <button class="key num" data-value="8">8</button>
-        <button class="key num" data-value="9">9</button>
-        <button class="key op" data-action="multiply">&times;</button>
+    <!-- Currency Converter -->
+    <div class="panel" role="application" aria-label="Currency Converter">
+        <div class="panel-title">Exchange</div>
 
-        <button class="key num" data-value="4">4</button>
-        <button class="key num" data-value="5">5</button>
-        <button class="key num" data-value="6">6</button>
-        <button class="key op" data-action="subtract">-</button>
+        <div class="fx-row" id="fx-usd">
+            <div class="fx-label">
+                <span class="pair">CNY / USD</span>
+                <span class="rate" id="rate-usd">1 USD = -- CNY</span>
+            </div>
+            <div class="fx-input-wrap">
+                <input class="fx-input" type="text" inputmode="decimal" id="cny-usd" placeholder="CNY" autocomplete="off">
+                <span class="fx-arrow">&#8594;</span>
+                <span class="fx-result" id="usd-result">0.00</span>
+                <span class="fx-currency">USD</span>
+            </div>
+        </div>
 
-        <button class="key num" data-value="1">1</button>
-        <button class="key num" data-value="2">2</button>
-        <button class="key num" data-value="3">3</button>
-        <button class="key op" data-action="add">+</button>
+        <div class="fx-row" id="fx-eur">
+            <div class="fx-label">
+                <span class="pair">CNY / EUR</span>
+                <span class="rate" id="rate-eur">1 EUR = -- CNY</span>
+            </div>
+            <div class="fx-input-wrap">
+                <input class="fx-input" type="text" inputmode="decimal" id="cny-eur" placeholder="CNY" autocomplete="off">
+                <span class="fx-arrow">&#8594;</span>
+                <span class="fx-result" id="eur-result">0.00</span>
+                <span class="fx-currency">EUR</span>
+            </div>
+        </div>
 
-        <button class="key num span2" data-value="0">0</button>
-        <button class="key num" data-value=".">.</button>
-        <button class="key eq" data-action="equals">=</button>
+        <div class="fx-row" id="fx-coin">
+            <div class="fx-label">
+                <span class="pair">CNY / Coin</span>
+                <span class="rate" id="rate-coin">1 CNY = 1.00 COIN</span>
+            </div>
+            <div class="fx-input-wrap">
+                <input class="fx-input" type="text" inputmode="decimal" id="cny-coin" placeholder="CNY" autocomplete="off">
+                <span class="fx-arrow">&#8594;</span>
+                <span class="fx-result" id="coin-result">0.00</span>
+                <span class="fx-currency">COIN</span>
+            </div>
+        </div>
+
+        <div class="fx-note">Rates updated daily. Coin value configurable.</div>
     </div>
 </div>
 
@@ -206,6 +321,7 @@
 (function() {
     'use strict';
 
+    // ── Calculator ──
     var state = {
         display: '0',
         expr: '',
@@ -221,7 +337,6 @@
 
     function updateDisplay() {
         var num = state.display;
-        // truncate very long decimals to avoid overflow
         if (num.length > 16) {
             var dot = num.indexOf('.');
             if (dot >= 0) {
@@ -240,12 +355,9 @@
             return n.toExponential(6);
         }
         var s = String(n);
-        // if it's a float with many digits, limit to 10 decimal places
         var dot = s.indexOf('.');
         if (dot >= 0 && s.length - dot - 1 > 10) {
-            s = n.toFixed(10);
-            // trim trailing zeros
-            s = s.replace(/\.?0+$/, '');
+            s = n.toFixed(10).replace(/\.?0+$/, '');
         }
         return s;
     }
@@ -315,7 +427,6 @@
         var cur = parseFloat(state.display);
         if (isNaN(cur)) return;
         if (state.prev !== null && !state.justEvaluated) {
-            // chain
             var result = compute(state.prev, cur, state.op);
             if (state.error) { updateDisplay(); return; }
             state.display = formatNum(result);
@@ -381,14 +492,11 @@
         updateDisplay();
     }
 
-    // ── Event delegation ──
     document.querySelector('.keys').addEventListener('click', function(e) {
         var btn = e.target.closest('button');
         if (!btn) return;
-
         var action = btn.getAttribute('data-action');
         var value = btn.getAttribute('data-value');
-
         if (action === 'clear') { clearAll(); }
         else if (action === 'sign') { toggleSign(); }
         else if (action === 'percent') { percent(); }
@@ -397,50 +505,20 @@
         else if (value !== null) { inputDigit(value); }
     });
 
-    // ── Keyboard support ──
-    var keyMap = {
-        '0': '0', '1': '1', '2': '2', '3': '3', '4': '4',
-        '5': '5', '6': '6', '7': '7', '8': '8', '9': '9',
-        '.': '.'
-    };
-    var opMap = {
-        '+': 'add', '-': 'subtract', '*': 'multiply', '/': 'divide'
-    };
-
+    var keyMap = { '0':'0','1':'1','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','.':'.' };
+    var opMap = { '+':'add','-':'subtract','*':'multiply','/':'divide' };
     document.addEventListener('keydown', function(e) {
         var key = e.key;
-
-        if (key === 'Escape' || key === 'Delete' || (key === 'c' && !e.ctrlKey && !e.metaKey)) {
-            e.preventDefault();
-            clearAll();
-            return;
-        }
-
-        if (keyMap.hasOwnProperty(key)) {
-            e.preventDefault();
-            inputDigit(keyMap[key]);
-            return;
-        }
-
-        if (opMap.hasOwnProperty(key)) {
-            e.preventDefault();
-            setOp(opMap[key]);
-            return;
-        }
-
-        if (key === 'Enter' || key === '=') {
-            e.preventDefault();
-            evaluate();
-            return;
-        }
-
+        if (key === 'Escape' || key === 'Delete') { e.preventDefault(); clearAll(); return; }
+        if (keyMap.hasOwnProperty(key)) { e.preventDefault(); inputDigit(keyMap[key]); return; }
+        if (opMap.hasOwnProperty(key)) { e.preventDefault(); setOp(opMap[key]); return; }
+        if (key === 'Enter' || key === '=') { e.preventDefault(); evaluate(); return; }
         if (key === 'Backspace') {
             e.preventDefault();
             if (state.error) { clearAll(); return; }
             if (state.justEvaluated) { clearAll(); return; }
             if (state.display.length === 1 || (state.display.length === 2 && state.display.startsWith('-'))) {
-                state.display = '0';
-                state.hasDot = false;
+                state.display = '0'; state.hasDot = false;
             } else {
                 var last = state.display[state.display.length - 1];
                 if (last === '.') state.hasDot = false;
@@ -449,13 +527,55 @@
             updateDisplay();
             return;
         }
-
-        if (key === '%') {
-            e.preventDefault();
-            percent();
-            return;
-        }
+        if (key === '%') { e.preventDefault(); percent(); return; }
     });
+
+    // ── Currency Converter ──
+    // Hardcoded approximate rates (updated manually when convenient)
+    var rates = {
+        usd: 7.24,     // 1 USD = 7.24 CNY
+        eur: 7.85,     // 1 EUR = 7.85 CNY
+        coin: 1.00     // 1 COIN = 1 CNY (configurable placeholder)
+    };
+
+    function updateRateDisplay() {
+        document.getElementById('rate-usd').textContent = '1 USD = ' + rates.usd.toFixed(2) + ' CNY';
+        document.getElementById('rate-eur').textContent = '1 EUR = ' + rates.eur.toFixed(2) + ' CNY';
+        document.getElementById('rate-coin').textContent = '1 CNY = ' + rates.coin.toFixed(2) + ' COIN';
+    }
+    updateRateDisplay();
+
+    function setupFx(inputId, resultId, rate) {
+        var input = document.getElementById(inputId);
+        var result = document.getElementById(resultId);
+
+        function convert() {
+            var raw = input.value.replace(/,/g, '');
+            if (raw === '' || raw === '-') {
+                result.textContent = '0.00';
+                return;
+            }
+            var val = parseFloat(raw);
+            if (isNaN(val) || !isFinite(val)) {
+                result.textContent = '---';
+                return;
+            }
+            var converted = val / rate;
+            result.textContent = converted.toFixed(2);
+        }
+
+        input.addEventListener('input', convert);
+        input.addEventListener('blur', function() {
+            var raw = input.value.replace(/,/g, '');
+            if (raw !== '' && !isNaN(parseFloat(raw)) && isFinite(parseFloat(raw))) {
+                input.value = parseFloat(raw).toFixed(2);
+            }
+        });
+    }
+
+    setupFx('cny-usd', 'usd-result', rates.usd);
+    setupFx('cny-eur', 'eur-result', rates.eur);
+    setupFx('cny-coin', 'coin-result', rates.coin);
 })();
 </script>
 </body>
