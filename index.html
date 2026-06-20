@@ -318,25 +318,25 @@
             </div>
         </div>
 
-        <div class="fx-row" id="fx-coin">
+        <div class="fx-row" id="fx-gbp">
             <div class="fx-label">
-                <span class="pair">CNY / Coin</span>
-                <span class="rate" id="rate-coin">1 COIN = 1.00 CNY</span>
+                <span class="pair">CNY / GBP</span>
+                <span class="rate" id="rate-gbp">1 GBP = 9.10 CNY</span>
             </div>
             <div class="fx-row-inner">
                 <div class="fx-col">
                     <span class="fx-curr-label">CNY</span>
-                    <input class="fx-input" type="text" inputmode="decimal" data-fx="cny" data-rate="coin" id="cny-coin" placeholder="0.00" autocomplete="off">
+                    <input class="fx-input" type="text" inputmode="decimal" data-fx="cny" data-rate="gbp" id="cny-gbp" placeholder="0.00" autocomplete="off">
                 </div>
                 <div class="fx-arrow-wrap">&#8596;</div>
                 <div class="fx-col">
-                    <span class="fx-curr-label">COIN</span>
-                    <input class="fx-input" type="text" inputmode="decimal" data-fx="foreign" data-rate="coin" id="coin-cny" placeholder="0.00" autocomplete="off">
+                    <span class="fx-curr-label">GBP</span>
+                    <input class="fx-input" type="text" inputmode="decimal" data-fx="foreign" data-rate="gbp" id="gbp-cny" placeholder="0.00" autocomplete="off">
                 </div>
             </div>
         </div>
 
-        <div class="fx-note">Bidirectional conversion. Rates updated daily. Coin value configurable.</div>
+        <div class="fx-note">Bidirectional conversion. Rates updated daily.</div>
         </div>
     </div>
 </div>
@@ -563,7 +563,7 @@
     var rates = {
         usd: 7.24,
         eur: 7.85,
-        coin: 1.00
+        gbp: 9.10
     };
 
     function parseVal(input) {
@@ -610,14 +610,14 @@
 
     setupBidirectional('cny-usd', 'usd-cny', 'usd');
     setupBidirectional('cny-eur', 'eur-cny', 'eur');
-    setupBidirectional('cny-coin', 'coin-cny', 'coin');
+    setupBidirectional('cny-gbp', 'gbp-cny', 'gbp');
 
     // ── Auto-refresh rates every 12 hours ──
     // Try to fetch live rates from a public API (hardcoded fallback if unavailable)
     function updateDisplayedRates() {
         document.getElementById('rate-usd').textContent = '1 USD = ' + rates.usd.toFixed(2) + ' CNY';
         document.getElementById('rate-eur').textContent = '1 EUR = ' + rates.eur.toFixed(2) + ' CNY';
-        document.getElementById('rate-coin').textContent = '1 COIN = ' + rates.coin.toFixed(2) + ' CNY';
+        document.getElementById('rate-gbp').textContent = '1 GBP = ' + rates.gbp.toFixed(2) + ' CNY';
     }
     updateDisplayedRates();
 
